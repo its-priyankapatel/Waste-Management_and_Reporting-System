@@ -8,6 +8,7 @@ const testRoutes = require("./Routes/testRoutes");
 const authRoutes = require("./Routes/authRoutes");
 const complaintRoutes = require("./Routes/complaintRoutes");
 const verificationRoutes = require("./Routes/verificationRoutes");
+const viewRoutes = require("./Routes/viewRoutes");
 // create instance
 const app = express();
 dotenv.config();
@@ -27,6 +28,7 @@ app.use("/api/users/v1", authRoutes);
 app.use("/api/users/v1", authRoutes);
 app.use("/api/complaints/v1", complaintRoutes);
 app.use("/api/verify/v1", verificationRoutes);
+app.use("/api/view/v1", viewRoutes);
 
 const PORT = process.env.PORT || 4000;
 

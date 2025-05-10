@@ -62,17 +62,7 @@ const complaintSchema = new mongoose.Schema(
         default: [0, 0],
       },
     },
-    cleanedLocation: {
-      type: { type: String, enum: ["Point"], default: "Point" },
-      coordinates: {
-        type: [Number], // [longitude, latitude]
-        default: undefined,
-      },
-    },
-    location: {
-      type: String, // optional: if using address
-      required: true,
-    },
+
     locationCoords: {
       type: {
         type: String,
@@ -85,6 +75,18 @@ const complaintSchema = new mongoose.Schema(
       },
     },
     reassignmentsCount: { type: Number, default: 0 },
+    assignmentHistory: [
+      {
+        workerId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        count: {
+          type: Number,
+          default: 0,
+        },
+      },
+    ],
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },

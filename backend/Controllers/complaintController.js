@@ -1,5 +1,6 @@
 const Complaint = require("../Model/complaintModel");
 const cloudinary = require("../config/cloudinary");
+
 //submit-complaint by citizen
 const submitController = async (req, res) => {
   const { title, description, location } = req.body;
@@ -40,7 +41,6 @@ const assignComplaintController = async (req, res) => {
   try {
     // Check if the complaint exists
     const complaint = await Complaint.findById(complaintId);
-    console.log(complaint);
 
     if (!complaint) {
       return res.status(404).send({
@@ -164,8 +164,8 @@ const reassignComplaintController = async (req, res) => {
         .json({ success: false, message: "Complaint not found" });
     }
 
-    // Limit number of reassignments (let's assume 3 max)
-    if (complaint.reassignmentsCount >= 3) {
+    // Limit total number of reassignments (e.g., 2 max)
+    if (complaint.reassignmentsCount > 1) {
       return res.status(400).json({
         success: false,
         message:
@@ -173,13 +173,33 @@ const reassignComplaintController = async (req, res) => {
       });
     }
 
-    // Update assignment (same or different worker)
+    // Check if the same worker has been assigned more than twice
+    const workerRecord = complaint.assignmentHistory.find(
+      (record) => record.workerId.toString() === newWorkerId
+    );
+
+    if (workerRecord && workerRecord.count >= 2) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "This worker has already been assigned to this complaint twice.",
+      });
+    }
+
+    // Assign complaint
     complaint.assignedTo = newWorkerId;
     complaint.status = "in_progress";
-    complaint.reassignmentsCount += 1; // Increase reassignment counter
-    complaint.verificationStatus = "pending"; // Reset for next cycle
-    complaint.imageUploadedByWorker = false; // Clear previous photo status
-    complaint.cleanedImage = ""; // Optional: remove old photo
+    complaint.reassignmentsCount += 1;
+    complaint.verificationStatus = "pending";
+    complaint.imageUploadedByWorker = false;
+    complaint.cleanedImage = "";
+
+    // Update assignment history
+    if (workerRecord) {
+      workerRecord.count += 1;
+    } else {
+      complaint.assignmentHistory.push({ workerId: newWorkerId, count: 1 });
+    }
 
     await complaint.save();
 
